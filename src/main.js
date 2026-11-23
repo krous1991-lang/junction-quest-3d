@@ -5,24 +5,25 @@ const palette=[0x16c9df,0x28d84a,0xff8b18,0xf22c42,0xe52fbd,0xffcf27,0x3988f4,0x
 const names=['Aqua','Lime','Orange','Red','Pink','Yellow','Blue','Violet'];
 let level=1,coins=135,moves=0,soundOn=true,audioCtx=null,buses=[],passengers=[],selected=null,won=false;
 try{const s=JSON.parse(localStorage.getItem(SAVE)||'{}');level=s.level||1;coins=s.coins??135;soundOn=s.soundOn!==false}catch{}
-const scene=new THREE.Scene();scene.background=new THREE.Color('#d9e2f4');scene.fog=new THREE.Fog('#d9e2f4',70,115);
-const camera=new THREE.PerspectiveCamera(44,1,.1,120);camera.position.set(0,27,31);camera.lookAt(0,0,-3);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#d9e2f4');scene.fog=new THREE.Fog('#d9e2f4',95,155);
+const camera=new THREE.PerspectiveCamera(44,1,.1,120);camera.position.set(0,25,27);camera.lookAt(0,0,-1.5);
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
-scene.add(new THREE.HemisphereLight(0xffffff,0x8c9bb6,1.15));const sun=new THREE.DirectionalLight(0xffffff,1.35);sun.position.set(-8,18,12);sun.castShadow=true;scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xffffff,0x65728c,1.55));const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(-8,18,12);sun.castShadow=true;scene.add(sun);
 const board=new THREE.Group();scene.add(board);const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),clock=new THREE.Clock();let pickables=[];
 const mat=(c,r=.5,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const floor=mat('#e1e7f3'),road=mat('#777d91'),white=mat('#f5f7ff'),glass=mat('#bceaff',.2,.2),dark=mat('#24334a'),wheel=mat('#202638');
+const floor=mat('#d5deee'),road=mat('#59647b'),white=mat('#ffffff'),glass=mat('#9ce8ff',.18,.12),dark=mat('#24334a'),wheel=mat('#202638');\nconst crowdMats=palette.map(c=>mat(c,.28,.02));
 function save(){localStorage.setItem(SAVE,JSON.stringify({level,coins,soundOn}));$('saveState').textContent='SAVED LOCALLY'}
 function tone(f=500,d=.08){if(!soundOn)return;try{audioCtx??=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=f;g.gain.setValueAtTime(.05,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}catch{}}
 function clear(){while(board.children.length){const o=board.children[0];board.remove(o);o.traverse?.(v=>{v.geometry?.dispose();if(v.material&&!Array.isArray(v.material))v.material.dispose()})}pickables=[];buses=[];passengers=[]}
 function box(parent,w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
-function makePassenger(color,x,z){const g=new THREE.Group();g.position.set(x,.25,z);board.add(g);const c=mat(color,.32);const body=new THREE.Mesh(new THREE.SphereGeometry(.31,14,12),c);body.scale.set(.9,1.18,.9);body.position.y=.25;g.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.23,14,12),c);head.position.y=.58;g.add(head);passengers.push({group:g,color})}
+function makePassenger(color,x,z){const g=new THREE.Group();g.position.set(x,.18,z);board.add(g);const c=crowdMats[palette.indexOf(color)]||crowdMats[0];const body=new THREE.Mesh(new THREE.SphereGeometry(.27,12,10),c);body.scale.set(.92,1.05,.92);body.position.y=.25;body.castShadow=true;g.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.19,12,10),c);head.position.y=.57;head.castShadow=true;g.add(head);const shine=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),white);shine.position.set(-.07,.62,.15);g.add(shine);passengers.push({group:g,color})}
 function makeBus(b){const g=new THREE.Group();g.position.set(b.x,0,b.z);g.rotation.y=b.dir===1?-Math.PI/2:b.dir===2?Math.PI:b.dir===3?Math.PI/2:0;g.userData.bus=b;const c=mat(palette[b.color],.3,.08);box(g,1.55,.58,2.55,c,0,.53,0);box(g,1.32,.48,1.48,glass,0,1.04,-.18);box(g,1.38,.22,.72,c,0,.95,.83);for(const z of [-.83,.83])for(const x of [-.82,.82]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.12,16),wheel);w.rotation.z=Math.PI/2;w.position.set(x,.28,z);g.add(w)}const arrow=new THREE.Group();arrow.position.set(0,1.38,.05);const shaft=box(arrow,.12,.06,.65,white,0,0,0);const tip=new THREE.Mesh(new THREE.ConeGeometry(.25,.4,4),white);tip.rotation.x=Math.PI/2;tip.position.z=-.42;arrow.add(tip);g.add(arrow);board.add(g);b.mesh=g;pickables.push(g)}
 function drawRoad(){const ground=new THREE.Mesh(new THREE.PlaneGeometry(32,34),floor);ground.rotation.x=-Math.PI/2;ground.position.y=-.2;board.add(ground);
-const ring=new THREE.Mesh(new THREE.TorusGeometry(7.2,2.1,12,80),road);ring.rotation.x=Math.PI/2;ring.position.set(0,.02,-9);board.add(ring);
-const inner=new THREE.Mesh(new THREE.TorusGeometry(5.2,.12,8,80),white);inner.rotation.x=Math.PI/2;inner.position.set(0,.08,-9);board.add(inner);
-const outer=new THREE.Mesh(new THREE.TorusGeometry(9.25,.12,8,80),white);outer.rotation.x=Math.PI/2;outer.position.set(0,.08,-9);board.add(outer);
-for(let i=0;i<8;i++){const a=i*Math.PI/4;const col=palette[i];for(let j=0;j<8;j++){const ang=a+(j-3.5)*.055;makePassenger(col,Math.cos(ang)*7.2,.15+Math.sin(ang)*7.2-9)}}
+const ring=new THREE.Mesh(new THREE.TorusGeometry(7.25,2.05,16,112),road);ring.rotation.x=Math.PI/2;ring.position.set(0,.02,-9);ring.receiveShadow=true;board.add(ring);
+const inner=new THREE.Mesh(new THREE.TorusGeometry(5.18,.16,10,112),white);inner.rotation.x=Math.PI/2;inner.position.set(0,.12,-9);board.add(inner);
+const outer=new THREE.Mesh(new THREE.TorusGeometry(9.32,.16,10,112),white);outer.rotation.x=Math.PI/2;outer.position.set(0,.12,-9);board.add(outer);
+for(let i=0;i<8;i++){const arc=new THREE.Mesh(new THREE.TorusGeometry(7.25,1.72,10,24,Math.PI/4-.018),crowdMats[i]);arc.rotation.x=Math.PI/2;arc.rotation.z=i*Math.PI/4;arc.position.set(0,.14,-9);board.add(arc)}
+for(let i=0;i<8;i++){const a=i*Math.PI/4;const col=palette[i];for(let j=0;j<15;j++){const ang=a+(j-7)*.034;const radius=7.2+(j%3)*.34;makePassenger(col,Math.cos(ang)*radius,.18+Math.sin(ang)*radius-9)}}
 }
 function create(){clear();drawRoad();const rows=6,cols=7,spacing=1.72,rowGap=2.05,startX=-(cols-1)*spacing/2,startZ=1.1,occupied=Array.from({length:rows},()=>Array(cols).fill(null));
 for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const x=startX+c*spacing,z=startZ+r*rowGap;box(board,1.6,.13,1.9,mat('#c2c9d8'),x,-.06,z)}
