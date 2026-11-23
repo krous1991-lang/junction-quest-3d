@@ -1,22 +1,31 @@
 # Junction Quest
 
-An original, standalone route-planning puzzle game. This repository is independent of the other games in the account.
+An original route-connection puzzle game prototype. This repository is independent from the other game projects.
 
 ## Current prototype
-- Responsive touch-first browser prototype.
-- Original junction-rotation puzzle concept with a 5×5 board.
-- Local progress and coin save.
-- 5,000-level / 50-world progression framework.
-- No ads, purchases, paid APIs, or external game assets.
+- Interactive Three.js 3D board rendered with WebGL.
+- Touch-friendly track tiles with rotation and tap feedback.
+- Deterministic campaign generator for 5,000 levels across 50 named worlds.
+- Board size scales as the campaign progresses; boss encounters appear every 100 levels.
+- Coins, hint spending, level progression, and local save data.
+- Automated tests covering all 5,000 generated levels.
 
 ## Run locally
-`npm install`
-`npm run dev`
+Requires Node.js 20 or newer.
 
-## Roadmap
-1. Validate the core puzzle loop and deterministic level generation.
-2. Build a solvability-tested 5,000-level campaign across 50 worlds.
-3. Add world-specific environments, 3D/isometric presentation, original sound, achievements and accessibility.
-4. Package and test an Android build.
+```sh
+npm install
+npm test
+npm run dev
+```
 
-The current visual board is a lightweight 2D prototype with depth styling, not yet a finished 3D game. Level generation and win validation are prototype-stage and must be strengthened before release.
+## Build web bundle
+```sh
+npm run build
+```
+
+## Android debug APK
+The workflow `.github/workflows/android-apk.yml` can build a debug APK on demand. Open **Actions → Android debug APK → Run workflow** in GitHub. The resulting APK is uploaded as the `junction-quest-debug-apk` artifact.
+
+## Status
+This is an in-development prototype, not a store-ready release. Audio, accessibility, more varied level mechanics, device testing, and production QA remain to be completed. The Android workflow produces a debug APK, not a Play Store release.
