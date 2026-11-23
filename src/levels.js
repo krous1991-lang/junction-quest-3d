@@ -4,7 +4,7 @@ export const isSolved = tiles => tiles.filter(t => t.route).every(t => t.mask ==
 function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 const bit = { N:1, E:2, S:4, W:8 };
 export function generateLevel(level) {
-  const rand = rng(level * 7919 + 104729), size = level % 100 === 0 ? 6 : 5;
+  const rand = rng(level * 7919 + 104729), size = Math.min(9, 5 + Math.floor((level - 1) / 1000) + (level % 100 === 0 ? 1 : 0));
   const path = [{r:0,c:0}];
   // A monotonic path is guaranteed to reach the opposite corner without loops.
   while (path.at(-1).r < size-1 || path.at(-1).c < size-1) {
