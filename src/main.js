@@ -1,32 +1,29 @@
-import { generateLevel, rotateMask, isSolved } from './levels.js';
-const canvas=document.querySelector('#board'),ctx=canvas.getContext('2d');
-const $=id=>document.getElementById(id),SAVE='junction-quest-save-v1';
-const worlds=['Meadow Circuit','Copper Coast','Cloudline Pass','Neon Harbor','Crystal Basin','Solar Ridge','Moonlit Metro','Frostbyte Valley','Sky Garden','Aurora Nexus'];
-let saved={};try{saved=JSON.parse(localStorage.getItem(SAVE)||'{}')}catch{}
-let level=Math.min(5000,Math.max(1,saved.level||1)),coins=saved.coins??120,moves=0,won=false,tiles=[],size=5;
-function world(){return Math.floor((level-1)/100)+1}
-function worldName(){return worlds[(world()-1)%worlds.length]}
-function updateHud(){$('world').textContent=String(world()).padStart(2,'0');$('worldName').textContent=worldName();$('level').textContent=String(level).padStart(3,'0');$('coins').textContent=coins;$('progressFill').style.width=((level-1)/4999*100)+'%';}
+import * as THREE from 'three';
+import {generateLevel,rotateMask,isSolved} from './levels.js';
+const $=id=>document.getElementById(id),canvas=$('board'),SAVE='junction-quest-save-v1';
+const names=['Meadow Circuit','Copper Coast','Cloudline Pass','Neon Harbor','Crystal Basin','Solar Ridge','Moonlit Metro','Frostbyte Valley','Sky Garden','Aurora Nexus'];
+let data={};try{data=JSON.parse(localStorage.getItem(SAVE)||'{}')}catch{}
+let level=Math.max(1,Math.min(5000,data.level||1)),coins=data.coins??120,tiles=[],size=5,moves=0,won=false;
+const scene=new THREE.Scene();scene.background=new THREE.Color('#142943');scene.fog=new THREE.Fog('#142943',15,30);
+const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(0,9.5,11);camera.lookAt(0,0,0);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
+scene.add(new THREE.HemisphereLight(0xc6eaff,0x17233a,2));const light=new THREE.DirectionalLight(0xffffff,2.6);light.position.set(-4,9,6);light.castShadow=true;scene.add(light);
+const board=new THREE.Group();scene.add(board);const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),clock=new THREE.Clock();let targets=[];
+const material=(color,metalness=.1)=>new THREE.MeshStandardMaterial({color,metalness,roughness:.42});
+const tileMat=material('#315674'),emptyMat=material('#1b3048'),blue=material('#79caff',.3),green=material('#65e5c4',.25),gold=material('#ffc777',.3);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),material('#10223a'));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;scene.add(floor);
+function hud(){ $('world').textContent=String(Math.floor((level-1)/100)+1).padStart(2,'0');$('worldName').textContent=names[Math.floor((level-1)/100)%names.length];$('level').textContent=String(level).padStart(3,'0');$('coins').textContent=coins;$('progressFill').style.width=((level-1)/4999*100)+'%';}
 function save(){localStorage.setItem(SAVE,JSON.stringify({level,coins}));$('saveState').textContent='SAVED LOCALLY'}
-function makeLevel(){const data=generateLevel(level);tiles=data.tiles;size=data.size;moves=0;won=false;$('nextBtn').disabled=true;$('moves').textContent='0';$('best').textContent='—';$('goalText').textContent=data.boss?'BOSS ROUTE · '+data.routeLength+' links':data.routeLength+' route links';$('hint').textContent=data.boss?'BOSS LEVEL · Align every track segment.':'Rotate track pieces to connect the whole route.';updateHud();draw()}
-function geom(){const w=canvas.clientWidth,h=canvas.clientHeight,cell=Math.min((w-36)/size,(h-70)/size);return{w,h,cell,ox:(w-cell*size)/2,oy:(h-cell*size)/2-5}}
-function roundRect(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
-function draw(){if(!ctx||!tiles.length)return;const {w,h,cell,ox,oy}=geom();ctx.clearRect(0,0,w,h);
- for(let i=0;i<20;i++){ctx.fillStyle='#c2e5ff12';ctx.beginPath();ctx.arc((i*89+level*11)%w,(i*53+level*7)%h,1.5+i%3,0,Math.PI*2);ctx.fill()}
- for(const t of tiles){const x=ox+t.c*cell,y=oy+t.r*cell,s=cell-6,cx=x+s/2+3,cy=y+s/2+3;
-  ctx.save();ctx.translate(cx,cy);ctx.fillStyle=t.route?'#254968':'#172b44';roundRect(ctx,-s*.43,-s*.43,s*.86,s*.86,10);ctx.fill();ctx.restore();
-  if(!t.route)continue;
-  const done=t.mask===t.targetMask;ctx.lineCap='round';ctx.lineWidth=Math.max(5,cell*.105);ctx.strokeStyle=done?'#72e5c6':'#75b9ff';ctx.beginPath();ctx.moveTo(cx,cy);
-  if(t.mask&1){ctx.moveTo(cx,cy);ctx.lineTo(cx,cy-s*.39)}if(t.mask&2){ctx.moveTo(cx,cy);ctx.lineTo(cx+s*.39,cy)}if(t.mask&4){ctx.moveTo(cx,cy);ctx.lineTo(cx,cy+s*.39)}if(t.mask&8){ctx.moveTo(cx,cy);ctx.lineTo(cx-s*.39,cy)}ctx.stroke();
-  ctx.fillStyle='#e7f8ff';ctx.beginPath();ctx.arc(cx,cy,Math.max(3,cell*.055),0,Math.PI*2);ctx.fill();
-  if(t.start||t.end){ctx.fillStyle=t.start?'#6de4c4':'#ffc36e';ctx.beginPath();ctx.arc(cx,cy,cell*.16,0,Math.PI*2);ctx.fill();ctx.fillStyle='#10233b';ctx.font='800 '+Math.max(8,cell*.14)+'px Manrope';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.start?'S':'E',cx,cy+1)}
-  if(done){ctx.strokeStyle='#ffe18a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,cy,cell*.44,0,Math.PI*2);ctx.stroke()}
- }}
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
-function win(){won=true;const reward=15+Math.max(0,10-moves);coins+=reward;$('coins').textContent=coins;$('nextBtn').disabled=false;$('hint').textContent='Route complete! +'+reward+' stars';toast('Perfect connection · +'+reward+' stars');save()}
-function tap(e){if(won)return;const rect=canvas.getBoundingClientRect(),{cell,ox,oy}=geom(),c=Math.floor((e.clientX-rect.left-ox)/cell),r=Math.floor((e.clientY-rect.top-oy)/cell),t=tiles.find(v=>v.r===r&&v.c===c&&v.route);if(!t){toast('Tap a track piece');return}t.mask=rotateMask(t.mask);moves++;$('moves').textContent=moves;draw();if(isSolved(tiles))win()}
-function resize(){const dpr=Math.min(devicePixelRatio||1,2),rect=canvas.getBoundingClientRect();canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
-$('resetBtn').onclick=()=>makeLevel();
-$('hintBtn').onclick=()=>{if(coins<25){toast('Not enough stars');return}const t=tiles.find(v=>v.route&&v.mask!==v.targetMask);if(!t){toast('No hint needed');return}coins-=25;t.mask=t.targetMask;moves++;$('moves').textContent=moves;updateHud();draw();toast('One track piece aligned');if(isSolved(tiles))win();save()};
-$('nextBtn').onclick=()=>{if(!won)return;if(level===5000){toast('You completed all 50 worlds!');return}level++;makeLevel();save()};
-canvas.addEventListener('pointerup',tap);window.addEventListener('resize',resize);makeLevel();resize();
+let toastTimer;function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),1700)}
+function addTracks(g,t){const dirs=[[0,-1],[1,0],[0,1],[-1,0]],m=t.mask===t.targetMask?green:blue;for(let i=0;i<4;i++){if(!(t.mask&(1<<i)))continue;const [x,z]=dirs[i],rod=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.68,12),m);rod.position.set(x*.34,.25,z*.34);rod.rotation.z=Math.PI/2;rod.rotation.x=x?Math.PI/2:0;rod.castShadow=true;g.add(rod)}const hub=new THREE.Mesh(new THREE.SphereGeometry(.12,16,12),m);hub.position.y=.25;g.add(hub)}
+function build(){while(board.children.length){const o=board.children.pop();o.traverse?.(v=>{v.geometry?.dispose()})}targets=[];const gap=1.2,off=(size-1)*gap/2;for(const t of tiles){const g=new THREE.Group();g.position.set(t.c*gap-off,0,t.r*gap-off);g.userData.tile=t;board.add(g);const base=new THREE.Mesh(new THREE.BoxGeometry(1.06,.3,1.06),t.route?tileMat:emptyMat);base.position.y=-.1;base.castShadow=true;g.add(base);if(t.route){base.userData.group=g;targets.push(base);addTracks(g,t);if(t.start||t.end){const b=new THREE.Mesh(new THREE.CylinderGeometry(.16,.19,.13,20),t.start?green:gold);b.position.y=.38;g.add(b)}}}const pad=new THREE.Mesh(new THREE.BoxGeometry(size*gap+.25,.12,size*gap+.25),material('#1b3956'));pad.position.y=-.29;board.add(pad)}
+function resize(){const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}
+function makeLevel(){const d=generateLevel(level);tiles=d.tiles;size=d.size;moves=0;won=false;$('nextBtn').disabled=true;$('moves').textContent='0';$('best').textContent='—';$('goalText').textContent=d.boss?'BOSS ROUTE · '+d.routeLength+' links':d.routeLength+' route links';$('hint').textContent='Tap a 3D track tile to rotate it and connect the route.';hud();build();resize()}
+function win(){won=true;const reward=15+Math.max(0,10-moves);coins+=reward;$('coins').textContent=coins;$('nextBtn').disabled=false;$('hint').textContent='Route complete! +'+reward+' stars';toast('Route connected · +'+reward+' stars');save()}
+function tap(e){if(won)return;const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(pointer,camera);const h=ray.intersectObjects(targets,false)[0];if(!h){toast('Tap a raised track tile');return}const g=h.object.userData.group,t=g.userData.tile;t.mask=rotateMask(t.mask);moves++;$('moves').textContent=moves;while(g.children.length>1){const o=g.children.pop();o.geometry?.dispose()}addTracks(g,t);g.userData.spin=(g.userData.spin||0)+Math.PI/2;if(isSolved(tiles))win()}
+$('resetBtn').onclick=makeLevel;
+$('hintBtn').onclick=()=>{if(coins<25){toast('Not enough stars');return}const t=tiles.find(v=>v.route&&v.mask!==v.targetMask);if(!t){toast('No hint needed');return}coins-=25;t.mask=t.targetMask;moves++;$('moves').textContent=moves;build();toast('One track piece aligned');if(isSolved(tiles))win();save()};
+$('nextBtn').onclick=()=>{if(!won)return;if(level===5000){toast('All 50 worlds completed!');return}level++;makeLevel();save()};
+canvas.addEventListener('pointerup',tap);window.addEventListener('resize',resize);
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);board.children.forEach(g=>{if(g.userData.spin){const step=Math.min(g.userData.spin,dt*5);g.rotation.y+=step;g.userData.spin-=step;if(g.userData.spin<.001)g.userData.spin=0}});renderer.render(scene,camera)}
+makeLevel();animate();
