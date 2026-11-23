@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {generateLevel,rotateMask,isSolved} from './levels.js';
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 const $=id=>document.getElementById(id),canvas=$('board'),SAVE='junction-quest-save-v1';
 const names=["Meadow Circuit","Copper Coast","Cloudline Pass","Neon Harbor","Crystal Basin","Solar Ridge","Moonlit Metro","Frostbyte Valley","Sky Garden","Aurora Nexus","Amber Dunes","Coral Express","Misty Highlands","Voltage City","Jade River","Sunset Terminal","Ironwood Trails","Pearl Archipelago","Thunder Mesa","Starlight Port","Cobalt Canyon","Wildflower Way","Obsidian Crossing","Silver Lagoon","Ember District","Glacier Run","Sapphire Summit","Golden Orchard","Echo Valley","Prism Boulevard","Lunar Gardens","Ruby Frontier","Windmill Plains","Titanium Bay","Mirage Junction","Comet Boulevard","Emerald Pass","Bluebell Station","Solaris Ridge","Twilight Harbor","Celestial Loop","Dragonfly Delta","Quartz Quarter","Monsoon Market","Velvet Forest","Infinity Causeway","Radiant Citadel","Polar Gateway","Eclipse Heights","Final Horizon"];
 let data={};try{data=JSON.parse(localStorage.getItem(SAVE)||'{}')}catch{}
