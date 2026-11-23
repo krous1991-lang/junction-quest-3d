@@ -1,0 +1,6 @@
+{
+  "appId": "com.krous1991.junctionquest",
+  "appName": "Junction Quest",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
