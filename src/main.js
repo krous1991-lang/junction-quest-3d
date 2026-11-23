@@ -11,7 +11,8 @@ const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixe
 scene.add(new THREE.HemisphereLight(0xffffff,0x65728c,1.55));const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(-8,18,12);sun.castShadow=true;scene.add(sun);
 const board=new THREE.Group();scene.add(board);const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),clock=new THREE.Clock();let pickables=[];
 const mat=(c,r=.5,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const floor=mat('#d5deee'),road=mat('#59647b'),white=mat('#ffffff'),glass=mat('#9ce8ff',.18,.12),dark=mat('#24334a'),wheel=mat('#202638');\nconst crowdMats=palette.map(c=>mat(c,.28,.02));
+const floor=mat('#d5deee'),road=mat('#59647b'),white=mat('#ffffff'),glass=mat('#9ce8ff',.18,.12),dark=mat('#24334a'),wheel=mat('#202638');
+const crowdMats=palette.map(c=>mat(c,.28,.02));
 function save(){localStorage.setItem(SAVE,JSON.stringify({level,coins,soundOn}));$('saveState').textContent='SAVED LOCALLY'}
 function tone(f=500,d=.08){if(!soundOn)return;try{audioCtx??=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=f;g.gain.setValueAtTime(.05,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}catch{}}
 function clear(){while(board.children.length){const o=board.children[0];board.remove(o);o.traverse?.(v=>{v.geometry?.dispose();if(v.material&&!Array.isArray(v.material))v.material.dispose()})}pickables=[];buses=[];passengers=[]}
