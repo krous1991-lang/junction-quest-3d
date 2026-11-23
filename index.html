@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#101b32" />
+  <title>Junction Quest</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <main id="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">JQ</span><div><strong>JUNCTION QUEST</strong><small>ROUTE • THINK • DELIVER</small></div></div>
+      <div class="currency">✦ <span id="coins">120</span></div>
+    </header>
+    <section class="hud">
+      <div><small>WORLD <span id="world">01</span></small><strong id="worldName">Meadow Circuit</strong></div>
+      <div class="level-pill">LEVEL <b id="level">001</b> / 5000</div>
+    </section>
+    <section class="progress"><div id="progressFill"></div></section>
+    <section class="game-wrap">
+      <canvas id="board" aria-label="Puzzle board"></canvas>
+      <div class="hint" id="hint">Tap a glowing junction to rotate its track.</div>
+    </section>
+    <section class="goal-row">
+      <div><small>DELIVER</small><strong id="goalText">3 energy pods</strong></div>
+      <div class="moves"><small>MOVES</small><strong id="moves">0</strong></div>
+      <div class="moves"><small>BEST</small><strong id="best">—</strong></div>
+    </section>
+    <section class="controls">
+      <button id="resetBtn" class="secondary">↻ Reset</button>
+      <button id="hintBtn" class="secondary">✧ Hint <span>25</span></button>
+      <button id="nextBtn" class="primary" disabled>Next level →</button>
+    </section>
+    <footer><span>50 WORLDS</span><span>5,000 ROUTE PUZZLES</span><span id="saveState">SAVED LOCALLY</span></footer>
+  </main>
+  <div id="toast" role="status"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
