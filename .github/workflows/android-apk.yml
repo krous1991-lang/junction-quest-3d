@@ -1,6 +1,13 @@
 name: Android debug APK
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'icon.svg'
+      - '.github/workflows/android-apk.yml'
+      - 'capacitor.config.json'
+      - 'package.json'
 permissions:
   contents: read
 jobs:
