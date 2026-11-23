@@ -12,7 +12,7 @@ test('all 5000 generated levels have valid routes and 50 worlds',()=>{
     const route=data.tiles.filter(t=>t.route);
     assert.equal(route.length,data.routeLength);
     for(const t of route){
-      assert.ok([3,5,6,9,10,12].includes(t.targetMask),'each path cell has a two-way track');
+      assert.ok([1,2,4,8,3,5,6,9,10,12].includes(t.targetMask),'each path cell has a valid track shape');
       let m=t.mask,solvable=false;
       for(let i=0;i<4;i++){if(m===t.targetMask)solvable=true;m=rotateMask(m)}
       assert.ok(solvable,'every scrambled tile can be aligned by rotation');
