@@ -13,7 +13,7 @@
 <body>
   <main id="app">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">JQ</span><div><strong>JUNCTION QUEST</strong><small>ROUTE • THINK • DELIVER</small></div></div>
+      <div class="brand"><span class="brand-mark">JQ</span><div><strong>JUNCTION QUEST</strong><small>PARK • MATCH • ESCAPE</small></div></div>
       <div class="top-actions"><button id="soundBtn" class="sound-btn" aria-label="Toggle sound">♪ ON</button><div class="currency">✦ <span id="coins">120</span></div></div>
     </header>
     <section class="hud">
@@ -23,10 +23,10 @@
     <section class="progress"><div id="progressFill"></div></section>
     <section class="game-wrap">
       <canvas id="board" aria-label="Puzzle board"></canvas>
-      <div class="hint" id="hint">Tap a glowing junction to rotate its track.</div>
+      <div class="hint" id="hint">Tap a bus with a clear lane. Match 3 passengers of its colour.</div>
     </section>
     <section class="goal-row">
-      <div><small>DELIVER</small><strong id="goalText">3 energy pods</strong></div>
+      <div><small>DELIVER</small><strong id="goalText">15 buses to clear</strong></div>
       <div class="moves"><small>MOVES</small><strong id="moves">0</strong></div>
       <div class="moves"><small>BEST</small><strong id="best">—</strong></div>
     </section>
@@ -35,7 +35,7 @@
       <button id="hintBtn" class="secondary">✧ Hint <span>25</span></button>
       <button id="nextBtn" class="primary" disabled>Next level →</button>
     </section>
-    <footer><span>50 WORLDS</span><span id="achievement">✦ FIRST ROUTE AWAITS</span><span id="saveState">SAVED LOCALLY</span></footer>
+    <footer><span>50 WORLDS</span><span id="achievement">✦ MATCH THE COLOURS</span><span id="saveState">SAVED LOCALLY</span></footer>
   </main>
   <div id="toast" role="status"></div>
   <script type="module" src="/src/main.js"></script>
